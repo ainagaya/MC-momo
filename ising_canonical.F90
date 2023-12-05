@@ -6,7 +6,7 @@ Program Ising_canonical
 	integer, dimension(:), allocatable :: s
 	integer, dimension(:, :), allocatable :: nbr
 	integer, dimension(:, :), allocatable :: in
-	integer:: E, M
+	real(8) :: E, M
 	character :: str
 
 
@@ -50,9 +50,6 @@ Program Ising_canonical
 		end do
 	end do
 
-	do i = 1, L*L
-		print*, "Neighbours of", i, ": ", nbr(i,:)
-	end do
 
 	call energy(s, nbr, L, z, E)
 	call magnetization(s, L, M)
@@ -73,7 +70,7 @@ Subroutine energy(s, nbr, L, z, E)
 	integer, dimension(L*L), intent(in) :: s
 	integer, dimension(L*L, z), intent(in) :: nbr
 	integer :: i, k
-	integer, intent(out) :: E
+	real(8), intent(out) :: E
 
 	E = 0
 	do i = 1, L*L
@@ -90,7 +87,7 @@ Subroutine magnetization(s, L, M)
 	Implicit none
 	integer :: L, i
 	integer, dimension(L*L), intent(in) :: s
-	integer, intent(out) :: M
+	real(8), intent(out) :: M
 
 	M = 0
 	do i = 1, L*L
