@@ -1,8 +1,8 @@
 
 Program Ising_canonical
 	Implicit none
-	integer, parameter :: L=4, z=4
-	integer :: i, x, y
+	integer, parameter :: L=10, z=4
+	integer :: i, x, y, k
 	real(8), dimension(:), allocatable :: s
 	integer, dimension(:, :), allocatable :: nbr
 	real(8), dimension(:, :), allocatable :: in
@@ -13,6 +13,15 @@ Program Ising_canonical
 	allocate(nbr(L*L, z))
 	allocate(in(0:1, L*L))
 
+	open(33, file="test_configuration.dat", status = "old")
+
+	do i = 1, L*L
+		read(33, *) k, s(i)
+		if (k.ne.i) then
+			print*, "disordered file?"
+		end if 
+		print*, s(i)
+	end do
 
 
 	! We define in
