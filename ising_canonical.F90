@@ -3,12 +3,16 @@ Program Ising_canonical
 	Implicit none
 	integer, parameter :: L=4, z=4
 	integer :: i, x, y
-	real(8), dimension(L*L) :: s
-	integer, dimension(L*L, z) :: nbr
-	real(8), dimension(0:1, L*L) :: in
+	real(8), dimension(:), allocatable :: s
+	integer, dimension(:, :), allocatable :: nbr
+	real(8), dimension(:, :), allocatable :: in
 
 
 	! Initialization of the connectivity array
+	allocate(s(L*L))
+	allocate(nbr(L*L, z))
+	allocate(in(0:1, L*L))
+
 
 
 	! We define in
@@ -34,6 +38,10 @@ Program Ising_canonical
 	do i = 1, L*L
 		print*, "Neighbours of", i, ": ", nbr(i,:)
 	end do
+
+	deallocate(s)
+	deallocate(nbr)
+	deallocate(in)
 
 End program
 
