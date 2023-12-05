@@ -9,11 +9,12 @@ Program Ising_canonical
 	real(8):: E, M
 	character :: str
 
+
+	! Read the input from stdrd input
 	read(5, *) str, L
 	read(5, *) str, z
 
-	print*, L, z
-
+	print*, "L: ", L, "z: ", z
 
 	! Initialization of the connectivity array
 	allocate(s(L*L))
@@ -22,6 +23,7 @@ Program Ising_canonical
 
 	open(33, file="test_configuration.dat", status = "old")
 
+	! Building the spin array
 	do i = 1, L*L
 		read(33, *) k, s(i)
 		if (k.ne.i) then
@@ -29,8 +31,7 @@ Program Ising_canonical
 		end if 
 	end do
 
-
-	! We define in
+	! We array to applu initial conditions
 	do i = 1, L
 		in(0,i)=i-1
 		in(1,i)=i+1
@@ -39,6 +40,7 @@ Program Ising_canonical
 	in(0,1)=L
 	in(1,L)=1
 
+	! Build the neighouhood array
 	i=0
 	do y = 1, L
 		do x = 1, L
