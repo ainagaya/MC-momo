@@ -38,14 +38,23 @@ Program Ising_canonical
 End program
 
 
-!Subroutine energy(s, nbr)
-!	Implicit none
+Subroutine energy(s, nbr, L, z, E)
+	Implicit none
+	integer, intent(in) :: L, z
+	real(8), dimension(L*L), intent(in) :: s
+	integer, dimension(L*L, z), intent(in) :: nbr
+	integer :: i, k
+	real(8), intent(out) :: E
 
-!	E = 0
+	E = 0
+	do i = 1, L*L
+		do k = 1, z
+			E = E -0.5 * s(i)*s(nbr(i,k))
+		end do
+	end do
 
 
-
-!End Subroutine
+End Subroutine
 
 
 Subroutine magnetization(s, N, M)
