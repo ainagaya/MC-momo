@@ -25,7 +25,7 @@ Program Ising_canonical
 
 	! Building the spin array
 	do i = 1, L*L
-		read(33, *) k, s(i)
+		read(5, *) k, s(i)
 		if (k.ne.i) then
 			print*, "disordered file?"
 		end if 
