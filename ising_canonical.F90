@@ -3,10 +3,10 @@ Program Ising_canonical
 	Implicit none
 	integer :: L, z
 	integer :: i, x, y, k
-	real(8), dimension(:), allocatable :: s
+	integer, dimension(:), allocatable :: s
 	integer, dimension(:, :), allocatable :: nbr
-	real(8), dimension(:, :), allocatable :: in
-	real(8):: E, M
+	integer, dimension(:, :), allocatable :: in
+	integer:: E, M
 	character :: str
 
 
@@ -20,8 +20,6 @@ Program Ising_canonical
 	allocate(s(L*L))
 	allocate(nbr(L*L, z))
 	allocate(in(0:1, L*L))
-
-	open(33, file="test_configuration.dat", status = "old")
 
 	! Building the spin array
 	do i = 1, L*L
@@ -72,10 +70,10 @@ End program
 Subroutine energy(s, nbr, L, z, E)
 	Implicit none
 	integer, intent(in) :: L, z
-	real(8), dimension(L*L), intent(in) :: s
+	integer, dimension(L*L), intent(in) :: s
 	integer, dimension(L*L, z), intent(in) :: nbr
 	integer :: i, k
-	real(8), intent(out) :: E
+	integer, intent(out) :: E
 
 	E = 0
 	do i = 1, L*L
@@ -91,8 +89,8 @@ End Subroutine
 Subroutine magnetization(s, L, M)
 	Implicit none
 	integer :: L, i
-	real(8), dimension(L*L), intent(in) :: s
-	real(8), intent(out) :: M
+	integer, dimension(L*L), intent(in) :: s
+	integer, intent(out) :: M
 
 	M = 0
 	do i = 1, L*L
