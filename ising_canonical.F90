@@ -31,7 +31,7 @@ Program Ising_canonical
 		end if 
 	end do
 
-	! We array to applu initial conditions
+	! Array to apply PBC
 	do i = 1, L
 		in(0,i)=i-1
 		in(1,i)=i+1
@@ -40,7 +40,7 @@ Program Ising_canonical
 	in(0,1)=L
 	in(1,L)=1
 
-	! Build the neighouhood array
+	! Build the neighouhood arrays
 	i=0
 	do y = 1, L
 		do x = 1, L
