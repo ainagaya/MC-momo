@@ -1,12 +1,18 @@
 
 Program Ising_canonical
 	Implicit none
-	integer, parameter :: L=10, z=4
+	integer :: L, z
 	integer :: i, x, y, k
 	real(8), dimension(:), allocatable :: s
 	integer, dimension(:, :), allocatable :: nbr
 	real(8), dimension(:, :), allocatable :: in
 	real(8):: E, M
+	character :: str
+
+	read(5, *) str, L
+	read(5, *) str, z
+
+	print*, L, z
 
 
 	! Initialization of the connectivity array
