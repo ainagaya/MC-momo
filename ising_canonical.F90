@@ -6,6 +6,7 @@ Program Ising_canonical
 	real(8), dimension(:), allocatable :: s
 	integer, dimension(:, :), allocatable :: nbr
 	real(8), dimension(:, :), allocatable :: in
+	real(8):: E, M
 
 
 	! Initialization of the connectivity array
@@ -20,7 +21,6 @@ Program Ising_canonical
 		if (k.ne.i) then
 			print*, "disordered file?"
 		end if 
-		print*, s(i)
 	end do
 
 
@@ -48,6 +48,12 @@ Program Ising_canonical
 		print*, "Neighbours of", i, ": ", nbr(i,:)
 	end do
 
+	call energy(s, nbr, L, z, E)
+	call magnetization(s, L, M)
+
+	print*, "Energy: ", E
+	print*, "magnetization: ", M
+
 	deallocate(s)
 	deallocate(nbr)
 	deallocate(in)
@@ -74,14 +80,14 @@ Subroutine energy(s, nbr, L, z, E)
 End Subroutine
 
 
-Subroutine magnetization(s, N, M)
+Subroutine magnetization(s, L, M)
 	Implicit none
-	integer :: N, i
-	real(8), dimension(N), intent(in) :: s
+	integer :: L, i
+	real(8), dimension(L*L), intent(in) :: s
 	real(8), intent(out) :: M
 
 	M = 0
-	do i = 1, N
+	do i = 1, L*L
 		M = M + s(i)
 	end do
 
