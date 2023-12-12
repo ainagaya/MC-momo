@@ -10,15 +10,15 @@ Program Ising_canonical
 	real :: r1279
 	character :: str
 
-
-	T = 2.d0
-	beta = 1.d0/T
-	N_MC_steps = 1
+	N_MC_steps = 100000000
 
 	! Read the input from stdrd input
 	read(5, *) str, L
 	read(5, *) str, z
 	read(5, *) str, iseed
+	read(5, *) str, T
+
+	beta = 1.d0/T
 
 	call setr1279(iseed)
 
@@ -83,8 +83,8 @@ Program Ising_canonical
 	print*, "magnetization: ", M
 
 	do step = 1, N_MC_steps
-		call MC_move(s, L, E, z, nbr)
-		print*, E
+		call MC_move(s, L, E, z, nbr, table)
+		print*, E/(L*L)
 	end do
 
 	deallocate(s)
@@ -127,7 +127,7 @@ Subroutine magnetization(s, L, M)
 End Subroutine
 
 
-Subroutine MC_move(s, L, E, z, nbr)
+Subroutine MC_move(s, L, E, z, nbr, table)
 	Implicit none
 	integer, intent(in) :: L, z
 	real(8), dimension(L*L) :: s, s_new
@@ -147,7 +147,7 @@ Subroutine MC_move(s, L, E, z, nbr)
 
 		delta_E = int(energy_new - E)
 		!print*, delta_E 
-		print*, delta_E
+	!	print*, delta_E
 
 		if (delta_E.lt.0) then
 			!print*, "change accepted"
@@ -157,8 +157,9 @@ Subroutine MC_move(s, L, E, z, nbr)
 		else if (delta_E.ge.0) then
 			rnd = r1279()
 			exp = table(int(delta_E/2.d0))
+			!print*, "exp:", exp
 			if (rnd.lt.exp) then
-				print*, "change accepted"
+			!	print*, "change accepted"
 				s = s_new
 				E = energy_new
 			end if				
