@@ -1,32 +1,35 @@
 
 Program Ising_canonical
 	Implicit none
-	integer :: L, z, n, step, N_MC_steps
+	integer :: L, z, n, step, N_MC_steps, nmeas
 	integer :: i, x, y, k, iseed
-	real(8), dimension(:), allocatable :: s, table
+	integer, dimension(:), allocatable :: s
+	real(8), dimension(:), allocatable :: table
 	integer, dimension(:, :), allocatable :: nbr
 	real(8), dimension(:, :), allocatable :: in
 	real(8):: E, M, beta, T
 	real :: r1279
-	character :: str
-
-	N_MC_steps = 100000000
+	character, dimension(3) :: str
 
 	! Read the input from stdrd input
 	read(5, *) str, L
 	read(5, *) str, z
 	read(5, *) str, iseed
 	read(5, *) str, T
+	read(5, *) str, N_MC_steps
+	read(5, *) str, nmeas
+
+	print*, N_MC_steps
 
 	beta = 1.d0/T
 
 	call setr1279(iseed)
 
-	print*, iseed
+!	print*, iseed
 
-	print*, r1279()
+!	print*, r1279()
 
-	print*, "L: ", L, "z: ", z
+!	print*, "L: ", L, "z: ", z
 
 	! Initialization of the connectivity array
 	allocate(s(L*L))
@@ -37,6 +40,7 @@ Program Ising_canonical
 	! Building the spin array
 	do i = 1, L*L
 		read(5, *) k, s(i)
+!		print*, i
 		if (k.ne.i) then
 			print*, "disordered file?"
 		end if 
@@ -46,7 +50,7 @@ Program Ising_canonical
 	do i = -z, z
 		n = 2*i
 		table(i) = exp(-beta*n)
-		print*, table(i)
+!		print*, table(i)
 	end do
 
 	! Array to apply initial conditions
@@ -75,12 +79,14 @@ Program Ising_canonical
 	call energy(s, nbr, L, z, E)
 	call magnetization(s, L, M)
 
-	print*, "Energy: ", E
-	print*, "magnetization: ", M
+!	print*, "Energy: ", E
+!	print*, "magnetization: ", M
 
 	do step = 1, N_MC_steps
-		call MC_move(s, L, E, z, nbr, table)
-		print*, E/(L*L)
+		call MC_move(s, L, E, M, z, nbr, table)
+		if (mod(step, nmeas).eq.0) then
+			print*, E/(L*L)
+		end if
 	end do
 
 	deallocate(s)
@@ -123,32 +129,39 @@ Subroutine magnetization(s, L, M)
 End Subroutine
 
 
-Subroutine MC_move(s, L, E, z, nbr, table)
+Subroutine MC_move(s, L, E, M, z, nbr, table)
 	Implicit none
 	integer, intent(in) :: L, z
-	real(8), dimension(L*L) :: s, s_new
-	integer :: i, flip, delta_E, N
-	real(8) :: E, energy_new, exp, rnd
+	integer, dimension(L*L) :: s
+	integer :: i, flip, delta_E, N, k, aux
+	real(8) :: E, energy_new, exp, rnd, h, M
 	real :: r1279
-	integer, dimension(N, z) :: nbr
+	integer, dimension(L*L, z) :: nbr
 	real(8), dimension(-z:z) :: table
 
 	N = L*L
 
 	do flip = 1, N
-		s_new = s
-		i=mod(int(N*r1279()),N)+1
-		s_new(i)=s_new(i)*(-1)
-		call energy(s_new, nbr, L, z, energy_new)
 
-		delta_E = int(energy_new - E)
+		!print*, flip
+		i=mod(int(N*r1279()),N)+1
+		
+		h = 0
+		do k = 1, z
+			h = h + s(nbr(i,k))
+		end do
+
+		!call energy(s_new, nbr, L, z, energy_new)
+
+		delta_E = 2*s(i)*(-1)*h
 		!print*, delta_E 
 	!	print*, delta_E
 
 		if (delta_E.lt.0) then
 			!print*, "change accepted"
-			s = s_new
-			E = energy_new
+			s(i) = s(i)*(-1)
+			E = E + delta_E
+			M = M + s(i)
 
 		else if (delta_E.ge.0) then
 			rnd = r1279()
@@ -156,8 +169,9 @@ Subroutine MC_move(s, L, E, z, nbr, table)
 			!print*, "exp:", exp
 			if (rnd.lt.exp) then
 			!	print*, "change accepted"
-				s = s_new
-				E = energy_new
+				s(i) = s(i)*(-1)
+				E = E + delta_E
+				M = M + s(i)
 			end if				
 
 		end if
