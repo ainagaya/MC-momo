@@ -2,7 +2,7 @@
 Program Ising_canonical
 	Implicit none
 	integer :: L, z, n, step, N_MC_steps, nmeas
-	integer :: i, x, y, k, iseed
+	integer :: i, x, y, k
 	integer, dimension(:), allocatable :: s
 	real(8), dimension(:), allocatable :: table
 	integer, dimension(:, :), allocatable :: nbr
@@ -10,26 +10,20 @@ Program Ising_canonical
 	real(8):: E, M, beta, T
 	real :: r1279
 	character, dimension(3) :: str
+	real :: start_MC, finish_MC
 
 	! Read the input from stdrd input
-	read(5, *) str, L
-	read(5, *) str, z
-	read(5, *) str, iseed
-	read(5, *) str, T
-	read(5, *) str, N_MC_steps
-	read(5, *) str, nmeas
+	read(5, *) L
+	read(5, *) z
+	read(5, *) T
+	read(5, *) N_MC_steps
+	read(5, *) nmeas
 
-	print*, N_MC_steps
+	print*, N_MC_steps, nmeas
 
 	beta = 1.d0/T
 
-	call setr1279(iseed)
-
-!	print*, iseed
-
-!	print*, r1279()
-
-!	print*, "L: ", L, "z: ", z
+	call setr1279(nmeas)
 
 	! Initialization of the connectivity array
 	allocate(s(L*L))
@@ -74,20 +68,23 @@ Program Ising_canonical
 		end do
 	end do
 
-
-
 	call energy(s, nbr, L, z, E)
 	call magnetization(s, L, M)
 
 !	print*, "Energy: ", E
 !	print*, "magnetization: ", M
 
+	call cpu_time(start_MC)
 	do step = 1, N_MC_steps
 		call MC_move(s, L, E, M, z, nbr, table)
 		if (mod(step, nmeas).eq.0) then
-			print*, E/(L*L)
+			print*, E/(L*L), M/(L*L) 
 		end if
 	end do
+	call cpu_time(finish_MC)
+
+	write(10, *)  "Total time = ",finish_MC-start_MC," seconds. "
+	write(10, *)  "Time_MC_update = ",(finish_MC-start_MC)/(N_MC_steps*L*L)," seconds."
 
 	deallocate(s)
 	deallocate(nbr)
@@ -95,6 +92,7 @@ Program Ising_canonical
 
 End program
 
+! ---------------------------------------------------------------------
 
 Subroutine energy(s, nbr, L, z, E)
 	Implicit none
