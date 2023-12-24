@@ -1,16 +1,17 @@
 
 Program Ising_canonical
 	Implicit none
-	integer :: L, z, n, step, N_MC_steps, nmeas
-	integer :: i, x, y, k
+	integer :: L, z, n, step, N_MC_steps, nmeas, skip, T
+	integer :: i, x, y, k, counter
 	integer, dimension(:), allocatable :: s
 	real(8), dimension(:), allocatable :: table
-	integer, dimension(:, :), allocatable :: nbr
-	real(8), dimension(:, :), allocatable :: in
-	real(8):: E, M, beta, T
+	integer, dimension(:, :), allocatable :: nbr, in
+	real(8):: E, M, beta, mean
 	real :: r1279
 	character, dimension(3) :: str
 	real :: start_MC, finish_MC
+
+	skip = 1000
 
 	! Read the input from stdrd input
 	read(5, *) L
@@ -19,7 +20,7 @@ Program Ising_canonical
 	read(5, *) N_MC_steps
 	read(5, *) nmeas
 
-	print*, N_MC_steps, nmeas
+	print*, N_MC_steps, nmeas, skip
 
 	beta = 1.d0/T
 
@@ -33,11 +34,7 @@ Program Ising_canonical
 
 	! Building the spin array
 	do i = 1, L*L
-		read(5, *) k, s(i)
-!		print*, i
-		if (k.ne.i) then
-			print*, "disordered file?"
-		end if 
+		s(i) = 2*mod(int(2*r1279()),2) - 1
 	end do
 
 	! Array to apply PBC
@@ -71,17 +68,31 @@ Program Ising_canonical
 	call energy(s, nbr, L, z, E)
 	call magnetization(s, L, M)
 
-!	print*, "Energy: ", E
+	write(11,*) "Energy: ", E
 !	print*, "magnetization: ", M
 
 	call cpu_time(start_MC)
+
+	mean = 0.d0
+	counter = 0
 	do step = 1, N_MC_steps
 		call MC_move(s, L, E, M, z, nbr, table)
+		! strd output
 		if (mod(step, nmeas).eq.0) then
 			print*, E/(L*L), M/(L*L) 
 		end if
+		
+	!	call energy(s, nbr, L, z, energy_new)
+
+!		if (energy_new.ne.E) then
+!			write(11,*) step, energy_new, E
+!		end if
+
 	end do
 	call cpu_time(finish_MC)
+
+	write(10,*) "Mean (simple):", mean/counter
+
 
 	write(10, *)  "Total time = ",finish_MC-start_MC," seconds. "
 	write(10, *)  "Time_MC_update = ",(finish_MC-start_MC)/(N_MC_steps*L*L)," seconds."
@@ -105,7 +116,7 @@ Subroutine energy(s, nbr, L, z, E)
 	E = 0
 	do i = 1, L*L
 		do k = 1, z
-			E = E -0.5 * s(i)*s(nbr(i,k))
+			E = E - 0.5 * s(i)*s(nbr(i,k))
 		end do
 	end do
 
@@ -141,7 +152,7 @@ Subroutine MC_move(s, L, E, M, z, nbr, table)
 
 	do flip = 1, N
 
-		!print*, flip
+		! We decide a random particle to flip
 		i=mod(int(N*r1279()),N)+1
 		
 		h = 0
@@ -149,17 +160,27 @@ Subroutine MC_move(s, L, E, M, z, nbr, table)
 			h = h + s(nbr(i,k))
 		end do
 
+	!	write(11,*) "h ", h 
+
 		!call energy(s_new, nbr, L, z, energy_new)
 
-		delta_E = 2*s(i)*(-1)*h
-		!print*, delta_E 
-	!	print*, delta_E
+		! We take into account that we flipped the spin i
+		!delta_E = 2*s(i)*(-1)*h aixi no coincideix amb la calculada amb la subrutina
+		delta_E = 2*s(i)*h !aixi si qeu coincideix
+	!	write(11,*) "DEBUG3:	", E, delta_E
+
 
 		if (delta_E.lt.0) then
 			!print*, "change accepted"
 			s(i) = s(i)*(-1)
 			E = E + delta_E
-			M = M + s(i)
+			M = M + 2*s(i)
+
+!			call energy(s, nbr, L, z, energy_new)
+
+!			if (energy_new.ne.E) then
+!				write(11,*) "DEBUG1:	", flip, energy_new, E
+!			end if
 
 		else if (delta_E.ge.0) then
 			rnd = r1279()
@@ -169,15 +190,19 @@ Subroutine MC_move(s, L, E, M, z, nbr, table)
 			!	print*, "change accepted"
 				s(i) = s(i)*(-1)
 				E = E + delta_E
-				M = M + s(i)
-			end if				
+				M = M + 2*s(i)
+				
+!				call energy(s, nbr, L, z, energy_new)
+
+!				if (energy_new.ne.E) then
+!					write(11,*) "DEBUG2:	", flip, energy_new, E
+!				end if	
+
+			end if		
 
 		end if
 		
 	end do
-
-
-
 
 End Subroutine
 

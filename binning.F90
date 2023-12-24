@@ -1,72 +1,86 @@
 Program binning
 	Implicit none
-	integer :: N_MC_steps, nmeas
-	integer :: m, counter, i,  number_of_bins, k, k_max
-	real(8), dimension(:), allocatable :: m_k, m_k_2
-	real(8) :: sum_1, sum_2
-	real(8), dimension(:), allocatable :: energy, magne
-	real(8) :: mean, strd, sigma_n
+	integer :: N_MC_steps, nmeas, skip, Nvalues
+	integer :: m, counter, i,  number_of_bins, k, k_max, t, j
+	real(16), dimension(:), allocatable :: av_bin_ene, av_bin_magne
+	real(16) :: sum_s_ene, sum_bin_j_ene, sum_s_magne, sum_bin_j_magne
+	real(16), dimension(:), allocatable :: energy, magne
+	real(16) :: mean_ene, s_2_ene, mean_magne, s_2_magne
 
-	read(5, *) N_MC_steps, nmeas
+	read(5, *) N_MC_steps, nmeas, skip
 
-	print*, "--------------- BINNING STARTS --------------------"
+	Nvalues =  (N_MC_steps)/nmeas
 
-	allocate(energy(N_MC_steps/nmeas)) 
-	allocate(magne(N_MC_steps/nmeas))
+	print*, "#--------------- BINNING STARTS --------------------"
+	print*, Nvalues
 
-	do i = 1, N_MC_steps/nmeas
+	allocate(energy(Nvalues)) 
+	allocate(magne(Nvalues))
+
+	print*, "#m	", "number_of_bins	", "mean_ene	", "s_2_ene	", "mean_magne	", "s_2_magne	"
+
+	do i = skip, Nvalues
 		read(5, *) energy(i), magne(i)
 	end do
 
 	k_max = 1
 
-	do while (N_MC_steps/(1000*k_max).gt.100)
+	do while (Nvalues/(100*k_max).gt.100)
 		k_max = k_max + 1
 	end do
 
-	k_max = k_max - 1
+	print*, k_max
 
-	do k = 1, k_max
-		m = 1000*k
-		number_of_bins = N_MC_steps/m
+	!do k = 0, k_max - 1 !Iterates for all m's
+	!	m = 2**k
+	do k = 1, k_max  !Iterates for all m's
+		m = 100*k	
+		number_of_bins = Nvalues/m
+		sum_s_ene = 0.d0
+		sum_s_magne = 0.d0
 
-		allocate(m_k(number_of_bins))
-		allocate(m_k_2(number_of_bins))
-		
-		sum_1 = 0
-		sum_2  = 0
+		allocate(av_bin_ene(number_of_bins))
+		allocate(av_bin_magne(number_of_bins))
 
-		counter = 0
-		do i = 1, N_MC_steps
-			sum_1 = sum_1 + energy(i)
-			sum_2 = sum_2 + energy(i)*energy(i) 
+		do j = 1, number_of_bins 
+			sum_bin_j_ene = 0.d0
+			sum_bin_j_magne = 0.d0
 
-			if (mod(i, m).eq.0) then
-				counter = counter + 1
-				m_k(counter) = sum_1/m
-				m_k_2(counter) = sum_2/m
+			do t = (j-1)*m + 1, j*m
+				sum_bin_j_ene = sum_bin_j_ene + energy(t)
+				sum_bin_j_magne = sum_bin_j_magne + magne(t)
+			end do
 
-				sum_1 = 0
-				sum_2 = 0
-
-			end if 
+			av_bin_ene(j) = sum_bin_j_ene/m
+			av_bin_magne(j) = sum_bin_j_magne/m
 		
 		end do
-		
-		mean = sum(m_k) / number_of_bins
 
-		strd = ((1.d0/number_of_bins*(sum(m_k_2))) - mean**2) ** (1./2.) 
 
-		sigma_n = strd/(number_of_bins - 1) ** (1./2.)
+		mean_ene = (sum(av_bin_ene))/number_of_bins
+		mean_magne = (sum(av_bin_magne))/number_of_bins
 
-		print*, m, mean, strd, sigma_n
 
-		deallocate(m_k)
-		deallocate(m_k_2)
+		do j = 1, number_of_bins
+			sum_s_ene = sum_s_ene + (av_bin_ene(j) - mean_ene)**2
+			!print*, sum_s_magne
+			sum_s_magne = sum_s_magne + (av_bin_magne(j) - mean_magne)**2
+		end do	
+
+		s_2_ene = 1.d0/(number_of_bins*(number_of_bins-1.d0))*sum_s_ene
+		s_2_magne = 1.d0/(number_of_bins*(number_of_bins-1.d0))*sum_s_magne
+
+
+		print*, m, number_of_bins, mean_ene, s_2_ene, mean_magne, s_2_magne
+
+		deallocate(av_bin_ene)
+		deallocate(av_bin_magne)
+
 	end do
 
 
 	deallocate(energy)
+	deallocate(magne)
 
 end program
 

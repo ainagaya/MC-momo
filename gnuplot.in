@@ -1,0 +1,6 @@
+
+set xlabel "t"
+set ylabel "M"
+set term png
+set output "output_plotting_ising_canonical.F90_input_test.dat.out_magne.png"
+plot "output_plotting_ising_canonical.F90_input_test.dat.out" using 1:3 with errorbars title ""
