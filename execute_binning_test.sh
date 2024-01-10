@@ -11,7 +11,7 @@ gfortran binning.F90 -o binning.out
 num_lines=$(wc -l < "$test_list")
 
 # Write the number of lines to nlines.dat
-echo "$num_lines 1" > nlines.dat
+echo "$num_lines 1 0" > nlines.dat
 
 # Concatenate tmp_input.dat and $test_list and save it to tmp_input
 cat nlines.dat "$test_list" > tmp_input

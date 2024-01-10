@@ -1,7 +1,8 @@
 
 Program Ising_canonical
 	Implicit none
-	integer :: L, z, n, step, N_MC_steps, nmeas, skip, T
+	integer :: L, z, n, step, N_MC_steps, nmeas, skip
+	real :: T
 	integer :: i, x, y, k, counter
 	integer, dimension(:), allocatable :: s
 	real(8), dimension(:), allocatable :: table
@@ -10,6 +11,7 @@ Program Ising_canonical
 	real :: r1279
 	character, dimension(3) :: str
 	real :: start_MC, finish_MC
+	character(len=80) :: filename, strL, strT, strNMCsteps
 
 	skip = 1000
 
@@ -20,6 +22,22 @@ Program Ising_canonical
 	read(5, *) N_MC_steps
 	read(5, *) nmeas
 
+	! Convert real to string
+  	write(strL, '(I2)') L
+  	write(strT, '(F3.1)') T
+  	write(strNMCsteps, '(I1)') N_MC_steps
+
+	print*, "Ising_canonical_L" // trim(strL) // "_T" // trim(strT) // "_NMCsteps" // trim(strNMCsteps) // ".bin"
+
+	filename = "Ising_canonical_L" // trim(strL) // "_T" // trim(strT) // "_NMCsteps" // trim(strNMCsteps) // ".dat"
+
+	print*, "nwfno"
+
+	open(20, file=filename, access="SEQUENTIAL", status="REPLACE") 
+
+	N_MC_steps = 10**(N_MC_steps)
+
+	write(20,*) int(N_MC_steps), nmeas, skip
 	print*, N_MC_steps, nmeas, skip
 
 	beta = 1.d0/T
@@ -68,7 +86,7 @@ Program Ising_canonical
 	call energy(s, nbr, L, z, E)
 	call magnetization(s, L, M)
 
-	write(11,*) "Energy: ", E
+!	write(11,*) "Energy: ", E
 !	print*, "magnetization: ", M
 
 	call cpu_time(start_MC)
@@ -79,7 +97,9 @@ Program Ising_canonical
 		call MC_move(s, L, E, M, z, nbr, table)
 		! strd output
 		if (mod(step, nmeas).eq.0) then
-			print*, E/(L*L), M/(L*L) 
+			write(20,*) E/(L*L), M/(L*L) 
+			mean = mean + E/(L*L)
+			counter = counter + 1
 		end if
 		
 	!	call energy(s, nbr, L, z, energy_new)
@@ -91,11 +111,14 @@ Program Ising_canonical
 	end do
 	call cpu_time(finish_MC)
 
-	write(10,*) "Mean (simple):", mean/counter
+	open(15, file="tmp.data")
+	write(15,*) "Mean (simple):", mean/counter, counter
 
 
-	write(10, *)  "Total time = ",finish_MC-start_MC," seconds. "
-	write(10, *)  "Time_MC_update = ",(finish_MC-start_MC)/(N_MC_steps*L*L)," seconds."
+	write(15, *)  "Total time = ",finish_MC-start_MC," seconds. "
+	write(15, *)  "Attempted flips per second = ",(N_MC_steps*L*L)/(finish_MC-start_MC)," flips."
+
+	close(15)
 
 	deallocate(s)
 	deallocate(nbr)
