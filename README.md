@@ -24,5 +24,5 @@ All the output produced by the ising code follows the pattern: `Ising_canonical_
 
 
 ### Contact information
-Aina Gaya Àvila, agayaavi53@alumnes.ub.edu
+Aina Gaya Àvila, agayaavi53@alumnes.ub.edu \\
 Adria Barbecho, 
