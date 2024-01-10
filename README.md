@@ -22,6 +22,9 @@ It will:
 To perform the production runs over different values of `T`, one can use `execute_temp_loop.sh`, which iterates for different values of `T`. 
 All the output produced by the ising code follows the pattern: `Ising_canonical_L$L_T$T_NMCsteps$N.dat`, so the data is never overwritten, and the files are easily accessible for the other codes used. 
 
+### Additional information:
+The seed used in the Ising code is `nmeas` in all the simulations.
+
 
 ### Contact information
 - Aina Gaya Àvila, agayaavi53@alumnes.ub.edu
